@@ -1,71 +1,59 @@
-# docker-rails-postgres
-
-This repo is used as a template to get started with a development environment using Docker Compose, Rails, and Postgress. 
-
-
-
-### Required ###
-
-You need to have docker installed and running
-
-
-
-### Installation ###
-
-Create the database:
-
-```shell
-# Remove git remote origin
-git remote remove origin
-
-# Move .env-sample and rails/secrets.sample.yml file
-mv .env-sample .env
-mv rails/config/secrets.sample.yml rails/config/secrets.yml
-
-# Generate new token & copy output to .env SECRET_KEY_BASE
-docker-compose run web bundle exec rake secret
-
-# Build images and boot
-docker-compose build
-docker-compose up
-
-# Create the new database
-docker-compose run web bundle exec rails db:create
+# Create databases
+```
+> rails db:create
+> rails readonly:db:create
 ```
 
-
-
-### Start/stop ###
-
-```ruby
-docker-compose up # this is used to boot
-docker-compose down # this is used to shutdown
+# Migration for primary database
+```
+> rails db:migrate
 ```
 
+# Import seed data for primary database
+```
+> rails db:seed  
+```
 
+# Migration for secondary database
+```
+> rails readonly:db:migrate
+```
 
-### Notes ###
+# Check User's count in primary database
+```
+> User.count
+   (0.5ms)  SELECT COUNT(*) FROM "users"
+=> 3
+```
 
-A volume will be created on the host machine for the data to allow for persistent data. No need to reseed your database.
+# Check User's count in secondary database
+```
+irb(main):003:0> Readonly::User.count
+   (0.6ms)  SELECT COUNT(*) FROM "users"
+=> 0
+```
 
-Read more about [Docker compose](https://docs.docker.com/compose/)
+# We can only create a new user by User but Readonly::User
+```
+irb(main):001:0> user = Readonly::User.new(username: "midman", email: "midman@fiahub.com")
+=> #<Readonly::User id: nil, username: "midman", email: "midman@fiahub.com", full_name: nil, password_digest: nil, role: nil, created_at: nil, updated_at: nil>
+irb(main):002:0> user.save
+ActiveRecord::ReadOnlyRecord (Readonly::User is marked as readonly)
 
+irb(main):003:0> user = User.new(username: "midman", email: "midman@fiahub.com")
+=> #<User id: nil, username: "midman", email: "midman@fiahub.com", full_name: nil, password_digest: nil, role: nil, created_at: nil, updated_at: nil>
+irb(main):004:0> user.save
+   (0.9ms)  BEGIN
+  SQL (0.7ms)  INSERT INTO "users" ("username", "email", "created_at", "updated_at") VALUES ($1, $2, $3, $4) RETURNING "id"  [["username", "midman"], ["email", "midman@fiahub.com"], ["created_at", "2021-09-11 10:55:58.896467"], ["updated_at", "2021-09-11 10:55:58.896467"]]
+   (0.9ms)  COMMIT
+=> true
+```
 
+# Check connection config from models
+```
+irb(main):017:0> User.connection_config
+=> {:adapter=>"postgresql", :encoding=>"unicode", :host=>"db", :username=>"postgres", :password=>"password", :pool=>5, :database=>"drp_development"}
 
-### TODO ###
-
-- would be nice to have a setup script that
-  - renames all files with 'drp' entries to a custom name (project)
-    - rails/config/database.yml
-    - rails/config/environments/production.rb
-    - rails/config/initializers/session_store.rb
-    - rails/app/views/layouts/application.html.erb
-    - rails/config/application.rb
-    - README.md
-  - generate secret.yml, new secret token, and create db
-    - mv rails/config/secrets.sample.yml to secrets.yml
-    - rake secret and place in .env file
-    - rake db:create
-    - rake db:migrate
-  - removes git remote origin and adds new origin
-
+irb(main):018:0> Readonly::User.connection_config
+=> {:adapter=>"postgresql", :encoding=>"unicode", :host=>"db_readonly", :username=>"postgres", :password=>"password", :pool=>5, :database=>"drp_development"}
+```

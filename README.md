@@ -1,3 +1,8 @@
+This's a demo about the way to seperate read/write data flows through models.
+- We can create data and insert it to `normal` database, consider it as `primary` database.
+- We can only read data in `readonly` database, consider it as `secondary` or `replica` database.
+
+
 # Create databases
 ```
 > rails db:create
@@ -35,12 +40,13 @@ irb(main):003:0> Readonly::User.count
 
 # We can only create a new user by User but Readonly::User
 ```
-irb(main):001:0> user = Readonly::User.new(username: "midman", email: "midman@fiahub.com")
+> user = Readonly::User.new(username: "midman", email: "midman@fiahub.com")
 => #<Readonly::User id: nil, username: "midman", email: "midman@fiahub.com", full_name: nil, password_digest: nil, role: nil, created_at: nil, updated_at: nil>
 irb(main):002:0> user.save
+...
 ActiveRecord::ReadOnlyRecord (Readonly::User is marked as readonly)
 
-irb(main):003:0> user = User.new(username: "midman", email: "midman@fiahub.com")
+> user = User.new(username: "midman", email: "midman@fiahub.com")
 => #<User id: nil, username: "midman", email: "midman@fiahub.com", full_name: nil, password_digest: nil, role: nil, created_at: nil, updated_at: nil>
 irb(main):004:0> user.save
    (0.9ms)  BEGIN
@@ -51,9 +57,9 @@ irb(main):004:0> user.save
 
 # Check connection config from models
 ```
-irb(main):017:0> User.connection_config
+> User.connection_config
 => {:adapter=>"postgresql", :encoding=>"unicode", :host=>"db", :username=>"postgres", :password=>"password", :pool=>5, :database=>"drp_development"}
 
-irb(main):018:0> Readonly::User.connection_config
+> Readonly::User.connection_config
 => {:adapter=>"postgresql", :encoding=>"unicode", :host=>"db_readonly", :username=>"postgres", :password=>"password", :pool=>5, :database=>"drp_development"}
 ```

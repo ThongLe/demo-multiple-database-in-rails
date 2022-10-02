@@ -22,6 +22,18 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
 
+  metabase:
+    image: metabase/metabase
+    ports:
+      - "3001:3000"
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: drp_development
+      MB_DB_PORT: 5432
+      MB_DB_USER: postgres
+      MB_DB_PASS: password
+      MB_DB_HOST: db_readonly
+
   web:
     build:
       context: rails/.

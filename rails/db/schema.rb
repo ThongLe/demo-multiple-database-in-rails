@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170929173315) do
+ActiveRecord::Schema.define(version: 20221001000001) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -25,4 +25,21 @@ ActiveRecord::Schema.define(version: 20170929173315) do
     t.datetime "updated_at",      null: false
   end
 
+  create_table "user_balance_versions", force: :cascade do |t|
+    t.bigint   "user_balance_id"
+    t.jsonb    "data"
+    t.decimal "balance"
+    t.jsonb "reason"
+    t.datetime "created_at",      null: false
+    t.datetime "updated_at",      null: false
+    t.index ["user_balance_id"], name: "index_user_balance_versions_on_user_balance_id", using: :btree
+  end
+
+  create_table "user_balances", force: :cascade do |t|
+    t.bigint   "user_id"
+    t.string   "coin"
+    t.decimal  "balance"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
 end

@@ -7,7 +7,7 @@ COPY Gemfile /mnt/rails/
 WORKDIR /mnt/rails
 
 # Bundle install
-RUN bundle install
+RUN bundle update && bundle install
 COPY . /mnt/rails
 
 EXPOSE 5000
